@@ -309,6 +309,7 @@ var ColorPicker = (function () {
 
 		// draw the default state
 		setColorMix(hsv[0]);
+		updateCursorPos();
 	}
 
 
@@ -474,13 +475,14 @@ var ColorPicker = (function () {
 	}
 
 	// here's the styling required to make this not look like shit
-	var colorPickerCSS  = "<style>";
-		colorPickerCSS += ".color-picker { font-size: 0 }";
-		colorPickerCSS += ".color-picker > * { border: 2px solid gray; display: inline-block; }";
-		colorPickerCSS += ".color-picker .cursor { position: absolute }";
-		colorPickerCSS += ".color-picker .hueBar { margin: 0px 10px 0px 15px }";
-		colorPickerCSS += "</style>";
-	document.write( colorPickerCSS );
+	document.write(
+		"<style>" + 
+			".color-picker { font-size: 0 }" + 
+			".color-picker > * { border: 2px solid gray; display: inline-block; }" +
+			".color-picker .cursor { position: absolute }" + 
+			".color-picker .hueBar { margin: 0px 10px 0px 15px }" +
+		"</style>"
+	);
 
 	return ColorPicker;
 })();
