@@ -475,12 +475,12 @@ var ColorPicker = (function () {
 
 	// here's the styling required to make this not look like shit
 	var colorPickerCSS  = "<style>";
-		colorPickerCSS += ".color-picker > * { border: 2px solid gray; float: left; font-size: 0; }";
+		colorPickerCSS += ".color-picker { font-size: 0 }";
+		colorPickerCSS += ".color-picker > * { border: 2px solid gray; display: inline-block; }";
 		colorPickerCSS += ".color-picker .cursor { position: absolute }";
 		colorPickerCSS += ".color-picker .hueBar { margin: 0px 10px 0px 15px }";
 		colorPickerCSS += "</style>";
 	document.write( colorPickerCSS );
-
 
 	return ColorPicker;
 })();
