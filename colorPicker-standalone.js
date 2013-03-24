@@ -457,7 +457,15 @@ var ColorPicker = (function () {
 		hueBar.setHue(0);
 
 		// present a united front- from the outside, we might as well be a single item
-		picker.setToColor = function (rgb) {
+		picker.getHSV = tintedPane.getHSV;
+		picker.getRGB = tintedPane.getRGB;
+
+		picker.setHSV = function (hsv) {
+			tintedPane.setHSV( hsv );
+			hueBar.setHue( hsv[0] );
+		}
+
+		picker.setRGB = function (rgb) {
 			tintedPane.setRGB( rgb );
 			hueBar.setHue( rgb2hsv(rgb)[0] );
 		}
