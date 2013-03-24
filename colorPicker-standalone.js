@@ -205,14 +205,20 @@ var ColorPicker = (function () {
 	function ColorPane (dim, cursorRadius) {
 		cursorRadius = typeof cursorRadius !== 'undefined' ? cursorRadius : 6;
 
-		var self = this;
-		self.colorChange = null;
-
 		// this is where we store our actual color (colorPanes think in hue-sat-val)
 		var hsv = [0,1,1];
 
-		self.getHSV = function () { return [hsv[0], hsv[1], hsv[2]]; }
-		self.setHSV = function (_hsv) {
+		// this is the actual div we'll be returning
+		var pane = document.createElement("div");
+			pane.onselectstart = function () { return false; };
+			pane.className = "color-pane";
+
+		// hook function to run if our contents change
+		pane.colorChange = null;
+
+
+		pane.getHSV = function () { return [hsv[0], hsv[1], hsv[2]]; }
+		pane.setHSV = function (_hsv) {
 			if (hsv[0] == _hsv[0] && hsv[1] == _hsv[1] && hsv[2] == _hsv[2])
 				return;
 
@@ -220,28 +226,28 @@ var ColorPicker = (function () {
 			setColorMix( hsv[0] );
 			updateCursorPos();
 			
-			if (self.colorChange != null)
-				self.colorChange( hsv2rgb(hsv) );
+			if (pane.colorChange != null)
+				pane.colorChange( hsv2rgb(hsv) );
 		}
 
-		self.setH = function (h) { self.setHSV( [h, hsv[1], hsv[2]] ); }
-		self.setS = function (s) { self.setHSV( [hsv[0], s, hsv[2]] ); }
-		self.setV = function (v) { self.setHSV( [hsv[0], hsv[1], v] ); }
+		pane.setH = function (h) { pane.setHSV( [h, hsv[1], hsv[2]] ); }
+		pane.setS = function (s) { pane.setHSV( [hsv[0], s, hsv[2]] ); }
+		pane.setV = function (v) { pane.setHSV( [hsv[0], hsv[1], v] ); }
 
-		self.getRGB = function () { return hsv2rgb(hsv); }
-		self.setRGB = function (rgb) { self.setHSV( rgb2hsv(rgb) ); }
-		self.setR = function (r) { rgb = hsv2rgb(hsv); self.setRGB([r, rgb[1], rgb[2]]); }
-		self.setG = function (g) { rgb = hsv2rgb(hsv); self.setRGB([rgb[0], g, rgb[2]]); }
-		self.setB = function (b) { rgb = hsv2rgb(hsv); self.setRGB([rgb[0], rgb[1], b]); }
+		pane.getRGB = function () { return hsv2rgb(hsv); }
+		pane.setRGB = function (rgb) { pane.setHSV( rgb2hsv(rgb) ); }
+		pane.setR = function (r) { rgb = hsv2rgb(hsv); pane.setRGB([r, rgb[1], rgb[2]]); }
+		pane.setG = function (g) { rgb = hsv2rgb(hsv); pane.setRGB([rgb[0], g, rgb[2]]); }
+		pane.setB = function (b) { rgb = hsv2rgb(hsv); pane.setRGB([rgb[0], rgb[1], b]); }
 
 
 		// these are composited together into the color window
-		var r = self.gradientHelper(dim, dim, 0, "rgba(255,0,0,0)", "rgba(255,0,0,1)");
-		var g = self.gradientHelper(dim, dim, 0, "rgba(0,255,0,0)", "rgba(0,255,0,1)");
-		var b = self.gradientHelper(dim, dim, 0, "rgba(0,0,255,0)", "rgba(0,0,255,1)");
+		var r = this.gradientHelper(dim, dim, 0, "rgba(255,0,0,0)", "rgba(255,0,0,1)");
+		var g = this.gradientHelper(dim, dim, 0, "rgba(0,255,0,0)", "rgba(0,255,0,1)");
+		var b = this.gradientHelper(dim, dim, 0, "rgba(0,0,255,0)", "rgba(0,0,255,1)");
 
-		var k = self.gradientHelper(dim, 0, dim, "rgba(0,0,0,0)", "rgba(0,0,0,1)");
-		var w = self.gradientHelper(dim, dim, 0, "rgba(255,255,255,1)", "rgba(255,255,255,0)");
+		var k = this.gradientHelper(dim, 0, dim, "rgba(0,0,0,0)", "rgba(0,0,0,1)");
+		var w = this.gradientHelper(dim, dim, 0, "rgba(255,255,255,1)", "rgba(255,255,255,0)");
 
 
 		// this is how the compositing actually happens
@@ -271,14 +277,16 @@ var ColorPicker = (function () {
 
 		var canvas = document.createElement("canvas");
 		canvas.width = canvas.height = dim;
+		pane.appendChild(canvas);
+
+		var cursor = this.buildCursorImg(cursorRadius);
+		pane.appendChild(cursor);
 
 
-		var cursor = self.buildCursorImg(cursorRadius);
 		function updateCursorPos () {
 			cursor.style.left = ((     hsv[1]  * dim) - cursorRadius) + "px";
 			cursor.style.top  = (((1 - hsv[2]) * dim) - cursorRadius) + "px";
 		}
-
 
 		var handle = new CanvasHandle( canvas, [0,0], dim * 2 );
 		handle.grab = handle.move = function () {
@@ -297,19 +305,15 @@ var ColorPicker = (function () {
 			updateCursorPos();
 
 			// hook
-			if (self.colorChange != null)
-				self.colorChange( hsv2rgb(hsv) );
+			if (pane.colorChange != null)
+				pane.colorChange( hsv2rgb(hsv) );
 		}
-
-		// roll everything together in one big giant ball
-		self.container = document.createElement("div");
-		self.container.appendChild(canvas);
-		self.container.appendChild(cursor);
-		self.container.onselectstart = function () { return false; };
 
 		// draw the default state
 		setColorMix(hsv[0]);
 		updateCursorPos();
+
+		return pane;
 	}
 
 
@@ -346,48 +350,41 @@ var ColorPicker = (function () {
 
 
 	function HueBar (xSize, ySize) {
-		var self = this;
-		self.hueChange = null;
+		var hueBar = document.createElement("div");
+			hueBar.className = "hue-bar";
 
-		var canvas = self.buildSpectrum(xSize, ySize);
-		var cursor = self.buildCursorImg(xSize);
+		var canvas = this.buildSpectrum(xSize, ySize);
+		var cursor = this.buildCursorImg(xSize);
+
+		hueBar.appendChild(cursor);
+		hueBar.appendChild(canvas);
 
 		canvas.onselectstart = function () { return false; };
-
-		self.container = document.createElement("div");
-		self.container.className = "hueBar";
-
-		self.container.onselectstart = function () { return false; };
-
-		self.container.appendChild(cursor);
-		self.container.appendChild(canvas);
-
+		hueBar.onselectstart = function () { return false; };
 
 		var y = 0;
 
-		self.getHue = function () {
+		hueBar.hueChange = null;
+
+		hueBar.getHue = function () {
 			return y * 360 / canvas.height;
 		}
 
-		self.setHue = function (hue) {
+		hueBar.setHue = function (hue) {
 			y = hue * canvas.height / 360;
-			cursor.style.top = (y - (cursor.height * 0.5)) + "px";
-
-			if (self.hueChange != null)
-				self.hueChange( self.getHue() );
-		}
-
-
-		var input = new CanvasHandle(canvas, [0,0], xSize + ySize);
-
-		input.grab = input.move = function () {
-			y = this.mouseDownPos[1];
 			y = y < 0 ? 0 : y > ySize ? ySize : y;
 			cursor.style.top = (y - (cursor.height * 0.5)) + "px";
 
-			if (self.hueChange != null)
-				self.hueChange( self.getHue() );
+			if (hueBar.hueChange != null)
+				hueBar.hueChange( hueBar.getHue() );
 		}
+
+		var handle = new CanvasHandle(canvas, [0,0], xSize + ySize);
+		handle.grab = handle.move = function () {
+			hueBar.setHue( this.mouseDownPos[1] * 360 / ySize );
+		}
+
+		return hueBar;
 	}
 
 
@@ -446,32 +443,34 @@ var ColorPicker = (function () {
 
 
 	function ColorPicker (dim) {
-		var self = this;
+		var picker = document.createElement("div");
+			picker.className = "color-picker";
 
 		var tintedPane = new ColorPane(dim);
 		var hueBar = new HueBar(20, dim);
+
+		picker.appendChild(tintedPane);
+		picker.appendChild(hueBar);
+
 
 		// hook up the HueBar to the ColorPane
 		hueBar.hueChange = tintedPane.setH;
 		hueBar.setHue(0);
 
 		// present a united front- from the outside, we might as well be a single item
-		self.setToColor = function (rgb) {
+		picker.setToColor = function (rgb) {
 			tintedPane.setRGB( rgb );
 			hueBar.setHue( rgb2hsv(rgb)[0] );
 		}
 
 		// expose a hook that'll fire if our color changes
-		self.colorChange = null;
+		picker.colorChange = null;
 		tintedPane.colorChange = function (rgb) {
-			if (self.colorChange != null)
-				self.colorChange(rgb);
+			if (picker.colorChange != null)
+				picker.colorChange(rgb);
 		};
 
-		self.container = document.createElement("div");
-		self.container.className = "color-picker";
-		self.container.appendChild(tintedPane.container);
-		self.container.appendChild(hueBar.container);
+		return picker;		
 	}
 
 	// here's the styling required to make this not look like shit
@@ -480,7 +479,7 @@ var ColorPicker = (function () {
 			".color-picker { font-size: 0 }" + 
 			".color-picker > * { border: 2px solid gray; display: inline-block; }" +
 			".color-picker .cursor { position: absolute }" + 
-			".color-picker .hueBar { margin: 0px 10px 0px 15px }" +
+			".color-picker .hue-bar { margin: 0px 10px 0px 15px }" +
 		"</style>"
 	);
 
