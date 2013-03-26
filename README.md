@@ -1,6 +1,6 @@
 #ColorPicker
 
-A pure canvas colorpicker. Won't pollute your namespace, and has minimal CSS.
+A pure canvas colorpicker. Won't pollute your namespace, and has minimal CSS. Demo [here](http://novorobo.com/programming/javascript/utilities/color-picker.html)
 
 ##Constructor Params
 ###dim
